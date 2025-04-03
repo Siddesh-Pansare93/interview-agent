@@ -1,27 +1,33 @@
 import Vapi from "@vapi-ai/web"
-import { useState ,  useEffect} from "react"
+import VapiInstance from "@vapi-ai/web"
+import {   useEffect, useRef} from "react"
 
 
 
 const App = () => {
 
+
+  const vapi = useRef<VapiInstance | null>(null)
   // const [vapi , setVapi ] = useState({})
-  const vapi = new Vapi(`${import.meta.env.VITE_VAPI_API_KEY}`)
+  useEffect(()=>{
+  vapi.current = new Vapi(`${import.meta.env.VITE_VAPI_API_KEY}`) as VapiInstance
+
+  })
 
 
 
 
   const handleStartCall = async ()=>{
-    await vapi.start(import.meta.env.VITE_VAPI_ASSISTANT_TOKEN)
+    await vapi.current?.start(import.meta.env.VITE_VAPI_ASSISTANT_TOKEN)
     console.log("call started")
 
-    vapi.on('call-end' , ()=>{
+    vapi.current?.on('call-end' , ()=>{
       alert("call has been ended")
     })
   } 
 
   const handleEndCall = ()=>{
-    vapi.stop()
+    vapi.current?.stop()
   }
 
   return (
