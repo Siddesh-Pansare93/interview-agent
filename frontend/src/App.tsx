@@ -8,7 +8,6 @@ const App = () => {
 
 
   const vapi = useRef<VapiInstance | null>(null)
-  // const [vapi , setVapi ] = useState({})
   useEffect(()=>{
   vapi.current = new Vapi(`${import.meta.env.VITE_VAPI_API_KEY}`) as VapiInstance
 
