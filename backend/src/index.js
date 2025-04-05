@@ -51,28 +51,29 @@ app.post("/generate-interview", async (req, res) => {
      `
      })
     
-     console.log(typeof response.text);
+     console.log(response.text);
      const questions = JSON.parse(response.text);
      
      // Store interview data in the database
-     const interview = new Interview({
-       role,
-       level,
-       techstack,
-       type,
-       questions
-     });
-     
-     await interview.save();
+     const interview = await Interview.create({
+      role, 
+      level, 
+      techstack, 
+      type, 
+      amount , 
+      questions
+     })
+
+     console.log(interview)
      
      // Send back questions array and the interview ID
-     res.send({
+     res.json({
        questions,
        interviewId: interview._id
      });
    } catch (error) {
         console.log("ERROR : ", error.message);
-        res.status(500).send({ error: error.message });
+          
    }
 });
 
