@@ -17,13 +17,15 @@ const App = () => {
   const vapi = useRef<any>(null)
   const [interviews, setInterviews] = useState<Interview[]>([])
   const [loading, setLoading] = useState<boolean>(false)
+  const [isCallActive, setIsCallActive] = useState<boolean>(false)
 
   // Function to fetch interviews from the backend
   const fetchInterviews = async () => {
     try {
       setLoading(true)
       // You might need to adjust this URL based on your backend deployment
-      const response = await axios.get(`${process.env.VITE_BACKEND_URL}/interviews`)
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/interviews`)
+      console.log(response)
       setInterviews(response.data)
     } catch (error) {
       console.error("Error fetching interviews:", error)
@@ -37,7 +39,12 @@ const App = () => {
     vapi.current = new Vapi(import.meta.env.VITE_VAPI_API_KEY)
 
     vapi.current.on('call-end', () => {
+      setIsCallActive(false)
       alert("Call has ended")
+    })
+    
+    vapi.current.on('call-start', () => {
+      setIsCallActive(true)
     })
 
     // Fetch interviews when component mounts
@@ -46,12 +53,14 @@ const App = () => {
     // Optional: Cleanup on component unmount
     return () => {
       vapi.current?.stop()
+      setIsCallActive(false)
     }
   }, [])
 
   const handleStartCall = async () => {
     try {
       await vapi.current?.start(import.meta.env.VITE_VAPI_ASSISTANT_TOKEN)
+      setIsCallActive(true)
       console.log("Call started")
     } catch (error) {
       console.error("Error starting call:", error)
@@ -61,6 +70,7 @@ const App = () => {
   const handleEndCall = () => {
     try {
       vapi.current?.stop()
+      setIsCallActive(false)
     } catch (error) {
       console.error("Error ending call:", error)
     }
@@ -82,21 +92,55 @@ const App = () => {
 
       {/* Main content */}
       <div className="container mx-auto px-4 pb-12">
-        {/* Call controls */}
-        <div className="mb-12 flex flex-col sm:flex-row justify-center gap-6">
-          <button 
-            onClick={handleStartCall}
-            className="px-8 py-4 text-lg font-bold bg-[#4a8cca] text-white border border-[#333] shadow-md hover:bg-[#3a7bbd] transition-all"
-          >
-            Start Interview
-          </button>
+        {/* Call controls and active call animation */}
+        <div className="mb-12">
+          {isCallActive ? (
+            <div className="max-w-md mx-auto mb-6 bg-[#1c1c1c] p-4 rounded-lg border border-[#4a8cca] shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="relative mr-3">
+                    <div className="absolute inset-0 rounded-full bg-[#4a8cca] opacity-30 animate-ping"></div>
+                    <div className="relative rounded-full bg-[#5f9ea0] h-3 w-3"></div>
+                  </div>
+                  <span className="text-white font-medium">Interview in progress</span>
+                </div>
+                
+                {/* Voice wave animation */}
+                <div className="flex items-center space-x-1">
+                  <div className="w-1 h-6 bg-[#4a8cca] animate-[waveform_1s_ease-in-out_infinite]"></div>
+                  <div className="w-1 h-8 bg-[#5f9ea0] animate-[waveform_1.2s_ease-in-out_infinite]"></div>
+                  <div className="w-1 h-4 bg-[#4a8cca] animate-[waveform_0.8s_ease-in-out_infinite]"></div>
+                  <div className="w-1 h-10 bg-[#5f9ea0] animate-[waveform_1.5s_ease-in-out_infinite]"></div>
+                  <div className="w-1 h-5 bg-[#4a8cca] animate-[waveform_0.9s_ease-in-out_infinite]"></div>
+                </div>
+                
+                <button 
+                  onClick={handleEndCall}
+                  className="bg-[#dc3545] text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-[#c82333] transition-colors"
+                >
+                  End Call
+                </button>
+              </div>
+            </div>
+          ) : null}
           
-          <button 
-            onClick={handleEndCall}
-            className="px-8 py-4 text-lg font-bold bg-[#5f9ea0] text-white border border-[#333] shadow-md hover:bg-[#4f8b90] transition-all"
-          >
-            End Interview
-          </button>
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+            <button 
+              onClick={handleStartCall}
+              className="px-8 py-4 text-lg font-bold bg-[#4a8cca] text-white border border-[#333] shadow-md hover:bg-[#3a7bbd] transition-all"
+              disabled={isCallActive}
+            >
+              Start Interview
+            </button>
+            
+            <button 
+              onClick={handleEndCall}
+              className="px-8 py-4 text-lg font-bold bg-[#5f9ea0] text-white border border-[#333] shadow-md hover:bg-[#4f8b90] transition-all"
+              disabled={!isCallActive}
+            >
+              End Interview
+            </button>
+          </div>
         </div>
 
         {/* Interview section */}
@@ -194,6 +238,20 @@ const App = () => {
           )}
         </div>
       </div>
+
+      {/* Add keyframes for the waveform animation */}
+      <style>
+        {`
+        @keyframes waveform {
+          0%, 100% { 
+            height: 3px;
+          }
+          50% { 
+            height: 20px;
+          }
+        }
+      `}
+      </style>
 
       {/* Footer */}
       <footer className="bg-[#1c1c1c] border-t border-[#333] py-6 text-center">
