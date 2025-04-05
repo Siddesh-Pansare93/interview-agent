@@ -6,7 +6,7 @@ import cors from 'cors'
 import { GoogleGenAI } from "@google/genai";
 
 import connectDb from './db/dbConnect.js';
-
+import Interview from './models/Interview.js';
 
 //Intialsing express app 
 const app = express()
@@ -23,18 +23,14 @@ app.use(cors({
     origin : "*"
 }))
 
-
-
-app.post("/generate-interview" ,async (req , res )=>{
-
+app.post("/generate-interview", async (req, res) => {
    try {
      console.log(req.body)
-     const {role , level , techstack , type , amount } = req.body
+     const {role, level, techstack, type, amount} = req.body
  
- 
-     const response  =  await ai.models.generateContent({
-         model : "gemini-2.0-flash" , 
-         contents : `Prepare questions for a job interview.
+     const response = await ai.models.generateContent({
+         model: "gemini-2.0-flash", 
+         contents: `Prepare questions for a job interview.
          The job role is ${role}.
          The job experience level is ${level}.
          The tech stack used in the job is: ${techstack}.
@@ -48,21 +44,56 @@ app.post("/generate-interview" ,async (req , res )=>{
          Thank you! <3
      `
      })
-    //  console.log(response.text);
-      console.log(typeof response.text);
-     res.send(JSON.parse(response.text))  
+    
+     console.log(typeof response.text);
+     const questions = JSON.parse(response.text);
+     
+     // Store interview data in the database
+     const interview = new Interview({
+       role,
+       level,
+       techstack,
+       type,
+       questions
+     });
+     
+     await interview.save();
+     
+     // Send back questions array and the interview ID
+     res.send({
+       questions,
+       interviewId: interview._id
+     });
    } catch (error) {
-        console.log("ERROR :  ", error.message )
+        console.log("ERROR : ", error.message);
+        res.status(500).send({ error: error.message });
    }
-} )
+});
 
+// Add endpoint to get all interviews
+app.get("/interviews", async (req, res) => {
+  try {
+    const interviews = await Interview.find().sort({ createdAt: -1 });
+    res.send(interviews);
+  } catch (error) {
+    console.log("ERROR : ", error.message);
+    res.status(500).send({ error: error.message });
+  }
+});
 
-
-
-
-
-
-
+// Add endpoint to get a specific interview by ID
+app.get("/interviews/:id", async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.id);
+    if (!interview) {
+      return res.status(404).send({ error: "Interview not found" });
+    }
+    res.send(interview);
+  } catch (error) {
+    console.log("ERROR : ", error.message);
+    res.status(500).send({ error: error.message });
+  }
+});
 
 //Connected Db to store the interview questions so that if wanted user or some other user 
 // can also practice same interview 
