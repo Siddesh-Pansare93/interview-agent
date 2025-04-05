@@ -5,6 +5,8 @@ import cors from 'cors'
 
 import { GoogleGenAI } from "@google/genai";
 
+import connectDb from './db/dbConnect.js';
+
 
 //Intialsing express app 
 const app = express()
@@ -48,7 +50,7 @@ app.post("/generate-interview" ,async (req , res )=>{
      })
     //  console.log(response.text);
       console.log(typeof response.text);
-     res.send(JSON.parse(response.text))
+     res.send(JSON.parse(response.text))  
    } catch (error) {
         console.log("ERROR :  ", error.message )
    }
@@ -62,9 +64,15 @@ app.post("/generate-interview" ,async (req , res )=>{
 
 
 
+//Connected Db to store the interview questions so that if wanted user or some other user 
+// can also practice same interview 
 
-
-app.listen( process.env.PORT , ()=>{
+connectDb().then(()=>{
+  app.listen( process.env.PORT , ()=>{
     console.log(`App is listening on port  : ${process.env.PORT}`)
 } )
+}).catch((error)=>{
+  console.log(`Error in Db connection : ${error.message}`)
+})
+
 
