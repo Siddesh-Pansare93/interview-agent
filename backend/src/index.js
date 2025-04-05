@@ -31,7 +31,7 @@ app.get("/" , (req , res )=>{
 app.post("/generate-interview", async (req, res) => {
    try {
     console.log('req received ')
-     console.log(req.body)
+     console.log(req)
      const {role, level, techstack, type, amount} = req.body
  
      const response = await ai.models.generateContent({
