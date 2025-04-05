@@ -23,8 +23,14 @@ app.use(cors({
     origin : "*"
 }))
 
+
+app.get("/" , ()=>{
+  res.send("hello , server is running ")
+})
+
 app.post("/generate-interview", async (req, res) => {
    try {
+    console.log('req received ')
      console.log(req.body)
      const {role, level, techstack, type, amount} = req.body
  
