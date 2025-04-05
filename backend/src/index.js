@@ -113,3 +113,4 @@ connectDb().then(()=>{
 })
 
 
+export default app
