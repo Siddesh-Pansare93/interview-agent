@@ -17,7 +17,6 @@ app.use(express.urlencoded())
 //Intialise genai
 
 const ai  =  new GoogleGenAI({apiKey : process.env.GEMINI_API_KEY})
-console.log(process.env.GEMINI_API_KEY)
 
 app.use(cors({
     origin : "*"
@@ -28,6 +27,11 @@ app.get("/" , (req , res )=>{
   res.send("hello , server is running ")
 })
 
+
+
+
+
+//Api end Point to generate the interview 
 app.post("/generate-interview", async (req, res) => {
    try {
     console.log('req received ')
@@ -102,7 +106,10 @@ app.get("/interviews/:id", async (req, res) => {
   }
 });
 
-//Connected Db to store the interview questions so that if wanted user or some other user 
+
+
+
+//Connected Db to store the interview questions so that if needed then user or some other user 
 // can also practice same interview 
 
 connectDb().then(()=>{
